@@ -6,9 +6,11 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from src.models.quality_issue import DataQualityIssue
 from src.models.reconciliation_result import ReconciliationResult
 from src.services.loader import load_snapshot
 from src.services.normalizer import normalize_dataframe
+from src.services.quality_checker import run_all_checks
 from src.services.reconciler import find_duplicates, reconcile
 
 
@@ -51,6 +53,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
 
 def print_summary(
     results: list[ReconciliationResult],
+    quality_issues: list[DataQualityIssue],
     snapshot1_path: str,
     snapshot2_path: str,
     snapshot1_rows: int,
@@ -60,6 +63,7 @@ def print_summary(
 
     Args:
         results: List of reconciliation results.
+        quality_issues: List of data quality issues.
         snapshot1_path: Path to first snapshot file.
         snapshot2_path: Path to second snapshot file.
         snapshot1_rows: Number of rows in first snapshot.
@@ -71,6 +75,11 @@ def print_summary(
     added = sum(1 for r in results if r.status == "added")
     removed = sum(1 for r in results if r.status == "removed")
 
+    # Count quality issues by severity
+    errors = sum(1 for i in quality_issues if i.severity == "error")
+    warnings = sum(1 for i in quality_issues if i.severity == "warning")
+    infos = sum(1 for i in quality_issues if i.severity == "info")
+
     print()
     print("=== Reconciliation Summary ===")
     print(f"Snapshot 1: {snapshot1_path} ({snapshot1_rows} rows)")
@@ -81,6 +90,8 @@ def print_summary(
     print(f"  Quantity Changed: {changed:>5}")
     print(f"  Added:            {added:>5}")
     print(f"  Removed:          {removed:>5}")
+    print()
+    print(f"Quality Issues: {len(quality_issues)} ({errors} errors, {warnings} warnings, {infos} info)")
     print()
 
 
@@ -107,11 +118,12 @@ def main(args: list[str] | None = None) -> int:
         print(f"Error: Snapshot 2 not found: {snapshot2_path}", file=sys.stderr)
         return 1
 
-    # Progress bar with 5 steps
+    # Progress bar with 6 steps (added quality checking)
     steps = [
         "Loading snapshot 1",
         "Loading snapshot 2",
         "Normalizing data",
+        "Checking quality",
         "Detecting duplicates",
         "Reconciling",
     ]
@@ -150,7 +162,15 @@ def main(args: list[str] | None = None) -> int:
         df1_norm, normalizations1 = normalize_dataframe(df1)
         df2_norm, normalizations2 = normalize_dataframe(df2)
 
-        # Step 4: Detect and filter duplicates
+        # Step 4: Check quality (on raw data before normalization for accurate reporting)
+        update_progress("Checking quality")
+        quality_issues = run_all_checks(
+            df1, df2,
+            mapped1, mapped2,
+            missing1, missing2,
+        )
+
+        # Step 5: Detect and filter duplicates
         update_progress("Detecting duplicates")
         key_cols = ["sku", "location"]
         dupes1 = find_duplicates(df1_norm, key_cols)
@@ -169,7 +189,7 @@ def main(args: list[str] | None = None) -> int:
         else:
             df2_clean = df2_norm
 
-        # Step 5: Reconcile
+        # Step 6: Reconcile
         update_progress("Reconciling")
         results = reconcile(df1_clean, df2_clean, key_cols)
 
@@ -180,6 +200,7 @@ def main(args: list[str] | None = None) -> int:
     # Print summary
     print_summary(
         results,
+        quality_issues,
         snapshot1_path,
         snapshot2_path,
         snapshot1_rows,

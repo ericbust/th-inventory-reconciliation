@@ -6,6 +6,7 @@ from src.services.normalizer import (
     normalize_name,
     normalize_sku,
 )
+from src.services.quality_checker import run_all_checks
 from src.services.reconciler import find_duplicates, reconcile
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "normalize_dataframe",
     "find_duplicates",
     "reconcile",
+    "run_all_checks",
 ]

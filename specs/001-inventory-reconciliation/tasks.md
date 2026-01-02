@@ -86,23 +86,23 @@
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Create test_quality_checker.py in tests/unit/ with test cases for each issue type (duplicate_key, negative_quantity, etc.)
-- [ ] T025 [P] [US2] Create snapshot_with_issues.csv in tests/fixtures/ with all quality issue types
-- [ ] T026 [P] [US2] Add quality issue test cases to tests/integration/test_full_reconciliation.py
+- [x] T024 [P] [US2] Create test_quality_checker.py in tests/unit/ with test cases for each issue type (duplicate_key, negative_quantity, etc.)
+- [x] T025 [P] [US2] Create snapshot_with_issues.csv in tests/fixtures/ with all quality issue types
+- [x] T026 [P] [US2] Add quality issue test cases to tests/integration/test_full_reconciliation.py
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create DataQualityIssue dataclass in src/models/quality_issue.py with issue_type, severity, source_file, row_number, field, values, description
-- [ ] T028 [US2] Implement check_duplicates() in src/services/quality_checker.py returning DataQualityIssue list
-- [ ] T029 [US2] Implement check_negative_quantities() in src/services/quality_checker.py
-- [ ] T030 [US2] Implement check_sku_format() in src/services/quality_checker.py for normalization detection
-- [ ] T031 [US2] Implement check_whitespace() in src/services/quality_checker.py for text field issues
-- [ ] T032 [US2] Implement check_date_format() in src/services/quality_checker.py for ISO format validation
-- [ ] T033 [US2] Implement check_column_names() in src/services/quality_checker.py for mapping detection
-- [ ] T034 [US2] Implement check_name_drift() in src/services/quality_checker.py comparing names across snapshots
-- [ ] T035 [US2] Implement run_all_checks() in src/services/quality_checker.py aggregating all quality checks
-- [ ] T036 [US2] Integrate quality checking into CLI flow in src/cli.py
-- [ ] T037 [US2] Update console summary to include quality issue counts by severity in src/cli.py
+- [x] T027 [P] [US2] Create DataQualityIssue dataclass in src/models/quality_issue.py with issue_type, severity, source_file, row_number, field, values, description
+- [x] T028 [US2] Implement check_duplicates() in src/services/quality_checker.py returning DataQualityIssue list
+- [x] T029 [US2] Implement check_negative_quantities() in src/services/quality_checker.py
+- [x] T030 [US2] Implement check_sku_format() in src/services/quality_checker.py for normalization detection
+- [x] T031 [US2] Implement check_whitespace() in src/services/quality_checker.py for text field issues
+- [x] T032 [US2] Implement check_date_format() in src/services/quality_checker.py for ISO format validation
+- [x] T033 [US2] Implement check_column_names() in src/services/quality_checker.py for mapping detection
+- [x] T034 [US2] Implement check_name_drift() in src/services/quality_checker.py comparing names across snapshots
+- [x] T035 [US2] Implement run_all_checks() in src/services/quality_checker.py aggregating all quality checks
+- [x] T036 [US2] Integrate quality checking into CLI flow in src/cli.py
+- [x] T037 [US2] Update console summary to include quality issue counts by severity in src/cli.py
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - reconciliation with quality issues detected
 
