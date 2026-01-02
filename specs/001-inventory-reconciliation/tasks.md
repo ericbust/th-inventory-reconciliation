@@ -116,18 +116,18 @@
 
 ### Tests for User Story 3
 
-- [ ] T038 [P] [US3] Create test_reporter.py in tests/unit/ with JSON structure and determinism test cases
-- [ ] T039 [P] [US3] Create expected_output.json in tests/fixtures/ for schema validation
-- [ ] T040 [P] [US3] Add JSON output validation to tests/integration/test_full_reconciliation.py
+- [x] T038 [P] [US3] Create test_reporter.py in tests/unit/ with JSON structure and determinism test cases
+- [x] T039 [P] [US3] Create expected_output.json in tests/fixtures/ for schema validation
+- [x] T040 [P] [US3] Add JSON output validation to tests/integration/test_full_reconciliation.py
 
 ### Implementation for User Story 3
 
-- [ ] T041 [P] [US3] Create ReconciliationReport dataclass in src/models/report.py with metadata, summary, results, quality_issues
-- [ ] T042 [P] [US3] Create ReportMetadata and ReportSummary nested dataclasses in src/models/report.py
-- [ ] T043 [US3] Implement build_report() in src/services/reporter.py assembling all components
-- [ ] T044 [US3] Implement write_json() in src/services/reporter.py with sort_keys=True for determinism
-- [ ] T045 [US3] Integrate JSON output into CLI flow in src/cli.py
-- [ ] T046 [US3] Ensure output/ directory is created if missing in src/cli.py
+- [x] T041 [P] [US3] Create ReconciliationReport dataclass in src/models/report.py with metadata, summary, results, quality_issues
+- [x] T042 [P] [US3] Create ReportMetadata and ReportSummary nested dataclasses in src/models/report.py
+- [x] T043 [US3] Implement build_report() in src/services/reporter.py assembling all components
+- [x] T044 [US3] Implement write_json() in src/services/reporter.py with sort_keys=True for determinism
+- [x] T045 [US3] Integrate JSON output into CLI flow in src/cli.py
+- [x] T046 [US3] Ensure output/ directory is created if missing in src/cli.py
 
 **Checkpoint**: All user stories should now be independently functional - complete reconciliation with quality issues and JSON output
 

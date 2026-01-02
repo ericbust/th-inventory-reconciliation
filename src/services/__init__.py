@@ -8,6 +8,7 @@ from src.services.normalizer import (
 )
 from src.services.quality_checker import run_all_checks
 from src.services.reconciler import find_duplicates, reconcile
+from src.services.reporter import build_report, write_json
 
 __all__ = [
     "COLUMN_MAPPING",
@@ -18,4 +19,6 @@ __all__ = [
     "find_duplicates",
     "reconcile",
     "run_all_checks",
+    "build_report",
+    "write_json",
 ]

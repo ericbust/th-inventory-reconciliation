@@ -1,5 +1,7 @@
 """Integration tests for full reconciliation flow."""
 
+import json
+import tempfile
 from pathlib import Path
 
 import pandas as pd
@@ -142,3 +144,223 @@ class TestBasicReconciliationFlow:
 
         assert len(df_clean) == 1, "Should have 1 non-duplicate row"
         assert df_clean["sku"].iloc[0] == "SKU-002"
+
+
+class TestJsonOutputGeneration:
+    """Integration tests for JSON output generation (User Story 3)."""
+
+    def test_full_flow_generates_valid_json(
+        self, sample_snapshot_1: Path, sample_snapshot_2: Path
+    ) -> None:
+        """Test complete flow generates valid JSON output."""
+        from src.models.quality_issue import DataQualityIssue
+        from src.services.loader import load_snapshot
+        from src.services.normalizer import normalize_dataframe
+        from src.services.quality_checker import run_all_checks
+        from src.services.reconciler import find_duplicates, reconcile
+        from src.services.reporter import build_report, write_json
+
+        # Load and normalize
+        df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
+        df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+
+        df1_norm, _ = normalize_dataframe(df1)
+        df2_norm, _ = normalize_dataframe(df2)
+
+        # Quality checks
+        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+
+        # Filter duplicates
+        key_cols = ["sku", "location"]
+        dupe_mask1 = df1_norm.duplicated(subset=key_cols, keep=False)
+        dupe_mask2 = df2_norm.duplicated(subset=key_cols, keep=False)
+        df1_clean = df1_norm[~dupe_mask1]
+        df2_clean = df2_norm[~dupe_mask2]
+
+        # Reconcile
+        results = reconcile(df1_clean, df2_clean, key_cols)
+
+        # Build report
+        report = build_report(
+            results=results,
+            quality_issues=quality_issues,
+            snapshot_1_path=str(sample_snapshot_1),
+            snapshot_2_path=str(sample_snapshot_2),
+            snapshot_1_rows=len(df1),
+            snapshot_2_rows=len(df2),
+            snapshot_1_valid_rows=len(df1_clean),
+            snapshot_2_valid_rows=len(df2_clean),
+        )
+
+        # Write to temp file
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "report.json"
+            write_json(report, output_path)
+
+            # Verify file is valid JSON
+            with open(output_path) as f:
+                loaded = json.load(f)
+
+            # Verify structure
+            assert "metadata" in loaded
+            assert "summary" in loaded
+            assert "results" in loaded
+            assert "quality_issues" in loaded
+
+            # Verify counts match
+            assert loaded["summary"]["unchanged"] == len(report.results.unchanged)
+            assert loaded["summary"]["quantity_changed"] == len(report.results.quantity_changed)
+            assert loaded["summary"]["added"] == len(report.results.added)
+            assert loaded["summary"]["removed"] == len(report.results.removed)
+
+    def test_json_output_is_deterministic(
+        self, sample_snapshot_1: Path, sample_snapshot_2: Path
+    ) -> None:
+        """Test that running reconciliation twice produces identical JSON output."""
+        from src.services.loader import load_snapshot
+        from src.services.normalizer import normalize_dataframe
+        from src.services.quality_checker import run_all_checks
+        from src.services.reconciler import reconcile
+        from src.services.reporter import build_report, write_json
+
+        def run_reconciliation() -> str:
+            df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
+            df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+
+            df1_norm, _ = normalize_dataframe(df1)
+            df2_norm, _ = normalize_dataframe(df2)
+
+            quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+
+            key_cols = ["sku", "location"]
+            dupe_mask1 = df1_norm.duplicated(subset=key_cols, keep=False)
+            dupe_mask2 = df2_norm.duplicated(subset=key_cols, keep=False)
+            df1_clean = df1_norm[~dupe_mask1]
+            df2_clean = df2_norm[~dupe_mask2]
+
+            results = reconcile(df1_clean, df2_clean, key_cols)
+
+            # Use fixed timestamp for determinism test
+            report = build_report(
+                results=results,
+                quality_issues=quality_issues,
+                snapshot_1_path=str(sample_snapshot_1),
+                snapshot_2_path=str(sample_snapshot_2),
+                snapshot_1_rows=len(df1),
+                snapshot_2_rows=len(df2),
+                snapshot_1_valid_rows=len(df1_clean),
+                snapshot_2_valid_rows=len(df2_clean),
+                generated_at="2026-01-02T10:30:00Z",
+            )
+
+            with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f:
+                output_path = Path(f.name)
+
+            write_json(report, output_path)
+            with open(output_path) as f:
+                content = f.read()
+            output_path.unlink()
+            return content
+
+        output1 = run_reconciliation()
+        output2 = run_reconciliation()
+
+        assert output1 == output2, "JSON output should be deterministic"
+
+    def test_json_validates_against_schema(
+        self, fixtures_dir: Path, sample_snapshot_1: Path, sample_snapshot_2: Path
+    ) -> None:
+        """Test that generated JSON validates against the output schema."""
+        from src.services.loader import load_snapshot
+        from src.services.normalizer import normalize_dataframe
+        from src.services.quality_checker import run_all_checks
+        from src.services.reconciler import reconcile
+        from src.services.reporter import build_report, write_json
+
+        # Load schema
+        schema_path = Path(__file__).parent.parent.parent / "specs" / "001-inventory-reconciliation" / "contracts" / "output-schema.json"
+        if not schema_path.exists():
+            pytest.skip("Schema file not found")
+
+        with open(schema_path) as f:
+            schema = json.load(f)
+
+        # Run reconciliation
+        df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
+        df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+
+        df1_norm, _ = normalize_dataframe(df1)
+        df2_norm, _ = normalize_dataframe(df2)
+
+        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+
+        key_cols = ["sku", "location"]
+        dupe_mask1 = df1_norm.duplicated(subset=key_cols, keep=False)
+        dupe_mask2 = df2_norm.duplicated(subset=key_cols, keep=False)
+        df1_clean = df1_norm[~dupe_mask1]
+        df2_clean = df2_norm[~dupe_mask2]
+
+        results = reconcile(df1_clean, df2_clean, key_cols)
+
+        report = build_report(
+            results=results,
+            quality_issues=quality_issues,
+            snapshot_1_path=str(sample_snapshot_1),
+            snapshot_2_path=str(sample_snapshot_2),
+            snapshot_1_rows=len(df1),
+            snapshot_2_rows=len(df2),
+            snapshot_1_valid_rows=len(df1_clean),
+            snapshot_2_valid_rows=len(df2_clean),
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "report.json"
+            write_json(report, output_path)
+
+            with open(output_path) as f:
+                report_json = json.load(f)
+
+            # Validate required top-level fields
+            for field in ["metadata", "summary", "results", "quality_issues"]:
+                assert field in report_json, f"Missing required field: {field}"
+
+            # Validate metadata fields
+            for field in schema["properties"]["metadata"]["required"]:
+                assert field in report_json["metadata"], f"Missing metadata field: {field}"
+
+            # Validate summary fields
+            for field in schema["properties"]["summary"]["required"]:
+                assert field in report_json["summary"], f"Missing summary field: {field}"
+
+            # Validate results structure
+            for status in ["unchanged", "quantity_changed", "added", "removed"]:
+                assert status in report_json["results"], f"Missing results.{status}"
+                assert isinstance(report_json["results"][status], list)
+
+    def test_cli_generates_output_file(
+        self, sample_snapshot_1: Path, sample_snapshot_2: Path
+    ) -> None:
+        """Test that CLI generates output file in output/ directory."""
+        from src.cli import main
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir) / "output"
+            output_path = output_dir / "reconciliation_report.json"
+
+            # Run CLI with custom output path
+            result = main([
+                "--snapshot1", str(sample_snapshot_1),
+                "--snapshot2", str(sample_snapshot_2),
+                "--output", str(output_path),
+                "--quiet",
+            ])
+
+            assert result == 0, "CLI should succeed"
+            assert output_path.exists(), "Output file should be created"
+
+            # Verify it's valid JSON
+            with open(output_path) as f:
+                loaded = json.load(f)
+
+            assert "metadata" in loaded
+            assert "summary" in loaded

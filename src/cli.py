@@ -12,6 +12,7 @@ from src.services.loader import load_snapshot
 from src.services.normalizer import normalize_dataframe
 from src.services.quality_checker import run_all_checks
 from src.services.reconciler import find_duplicates, reconcile
+from src.services.reporter import build_report, write_json
 
 
 def parse_args(args: list[str] | None = None) -> argparse.Namespace:
@@ -46,6 +47,13 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         "-q",
         action="store_true",
         help="Suppress progress bar output",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="output/reconciliation_report.json",
+        help="Path to output JSON file (default: output/reconciliation_report.json)",
     )
 
     return parser.parse_args(args)
@@ -92,7 +100,6 @@ def print_summary(
     print(f"  Removed:          {removed:>5}")
     print()
     print(f"Quality Issues: {len(quality_issues)} ({errors} errors, {warnings} warnings, {infos} info)")
-    print()
 
 
 def main(args: list[str] | None = None) -> int:
@@ -108,6 +115,7 @@ def main(args: list[str] | None = None) -> int:
     snapshot1_path = parsed_args.snapshot1
     snapshot2_path = parsed_args.snapshot2
     quiet = parsed_args.quiet
+    output_path = Path(parsed_args.output)
 
     # Check that files exist
     if not Path(snapshot1_path).exists():
@@ -118,7 +126,7 @@ def main(args: list[str] | None = None) -> int:
         print(f"Error: Snapshot 2 not found: {snapshot2_path}", file=sys.stderr)
         return 1
 
-    # Progress bar with 6 steps (added quality checking)
+    # Progress bar with 7 steps (added JSON output)
     steps = [
         "Loading snapshot 1",
         "Loading snapshot 2",
@@ -126,6 +134,7 @@ def main(args: list[str] | None = None) -> int:
         "Checking quality",
         "Detecting duplicates",
         "Reconciling",
+        "Writing output",
     ]
 
     if quiet:
@@ -193,6 +202,20 @@ def main(args: list[str] | None = None) -> int:
         update_progress("Reconciling")
         results = reconcile(df1_clean, df2_clean, key_cols)
 
+        # Step 7: Write JSON output
+        update_progress("Writing output")
+        report = build_report(
+            results=results,
+            quality_issues=quality_issues,
+            snapshot_1_path=snapshot1_path,
+            snapshot_2_path=snapshot2_path,
+            snapshot_1_rows=snapshot1_rows,
+            snapshot_2_rows=snapshot2_rows,
+            snapshot_1_valid_rows=len(df1_clean),
+            snapshot_2_valid_rows=len(df2_clean),
+        )
+        write_json(report, output_path)
+
     finally:
         if pbar:
             pbar.close()
@@ -206,6 +229,8 @@ def main(args: list[str] | None = None) -> int:
         snapshot1_rows,
         snapshot2_rows,
     )
+    print()
+    print(f"Output written to: {output_path}")
 
     return 0
 

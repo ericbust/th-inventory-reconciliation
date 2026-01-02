@@ -1,0 +1,95 @@
+{
+  "metadata": {
+    "generated_at": "2026-01-02T10:30:00Z",
+    "snapshot_1_path": "tests/fixtures/snapshot_clean.csv",
+    "snapshot_1_rows": 5,
+    "snapshot_1_valid_rows": 5,
+    "snapshot_2_path": "tests/fixtures/snapshot_with_changes.csv",
+    "snapshot_2_rows": 5,
+    "snapshot_2_valid_rows": 5
+  },
+  "quality_issues": [],
+  "results": {
+    "added": [
+      {
+        "location": "Warehouse A",
+        "new_name": "Gadget Mini",
+        "new_quantity": 40,
+        "old_name": null,
+        "old_quantity": null,
+        "quantity_delta": null,
+        "sku": "SKU-006",
+        "status": "added"
+      }
+    ],
+    "quantity_changed": [
+      {
+        "location": "Warehouse A",
+        "new_name": "Widget A",
+        "new_quantity": 95,
+        "old_name": "Widget A",
+        "old_quantity": 100,
+        "quantity_delta": -5,
+        "sku": "SKU-001",
+        "status": "quantity_changed"
+      },
+      {
+        "location": "Warehouse B",
+        "new_name": "Gadget Pro",
+        "new_quantity": 180,
+        "old_name": "Gadget Pro",
+        "old_quantity": 200,
+        "quantity_delta": -20,
+        "sku": "SKU-003",
+        "status": "quantity_changed"
+      },
+      {
+        "location": "Warehouse C",
+        "new_name": "Industrial Fan",
+        "new_quantity": 480,
+        "old_name": "Industrial Fan",
+        "old_quantity": 500,
+        "quantity_delta": -20,
+        "sku": "SKU-005",
+        "status": "quantity_changed"
+      }
+    ],
+    "removed": [
+      {
+        "location": "Warehouse A",
+        "new_name": null,
+        "new_quantity": null,
+        "old_name": "Power Drill",
+        "old_quantity": 75,
+        "quantity_delta": null,
+        "sku": "SKU-004",
+        "status": "removed"
+      }
+    ],
+    "unchanged": [
+      {
+        "location": "Warehouse A",
+        "new_name": "Widget B",
+        "new_quantity": 50,
+        "old_name": "Widget B",
+        "old_quantity": 50,
+        "quantity_delta": 0,
+        "sku": "SKU-002",
+        "status": "unchanged"
+      }
+    ]
+  },
+  "summary": {
+    "added": 1,
+    "quality_issues_by_severity": {
+      "error": 0,
+      "info": 0,
+      "warning": 0
+    },
+    "quality_issues_count": 0,
+    "quantity_changed": 3,
+    "removed": 1,
+    "total_items_compared": 6,
+    "unchanged": 1
+  }
+}
