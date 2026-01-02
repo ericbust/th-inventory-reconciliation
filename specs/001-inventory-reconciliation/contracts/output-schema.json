@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "reconciliation-report.schema.json",
+  "title": "ReconciliationReport",
+  "description": "Output schema for inventory reconciliation results",
+  "type": "object",
+  "required": ["metadata", "summary", "results", "quality_issues"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": [
+        "generated_at",
+        "snapshot_1_path",
+        "snapshot_2_path",
+        "snapshot_1_rows",
+        "snapshot_2_rows",
+        "snapshot_1_valid_rows",
+        "snapshot_2_valid_rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of report generation"
+        },
+        "snapshot_1_path": {
+          "type": "string",
+          "description": "Path to first snapshot file"
+        },
+        "snapshot_2_path": {
+          "type": "string",
+          "description": "Path to second snapshot file"
+        },
+        "snapshot_1_rows": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total rows in snapshot_1 (before filtering)"
+        },
+        "snapshot_2_rows": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total rows in snapshot_2 (before filtering)"
+        },
+        "snapshot_1_valid_rows": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rows after excluding duplicates"
+        },
+        "snapshot_2_valid_rows": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rows after excluding duplicates"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "total_items_compared",
+        "unchanged",
+        "quantity_changed",
+        "added",
+        "removed",
+        "quality_issues_count",
+        "quality_issues_by_severity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "total_items_compared": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of unique keys across both snapshots"
+        },
+        "unchanged": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of items with no quantity change"
+        },
+        "quantity_changed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of items with quantity change"
+        },
+        "added": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of items only in snapshot_2"
+        },
+        "removed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Count of items only in snapshot_1"
+        },
+        "quality_issues_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total quality issues detected"
+        },
+        "quality_issues_by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "error": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "warning": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "info": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "object",
+      "required": ["unchanged", "quantity_changed", "added", "removed"],
+      "additionalProperties": false,
+      "properties": {
+        "unchanged": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ReconciliationResult" }
+        },
+        "quantity_changed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ReconciliationResult" }
+        },
+        "added": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ReconciliationResult" }
+        },
+        "removed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ReconciliationResult" }
+        }
+      }
+    },
+    "quality_issues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/DataQualityIssue" }
+    }
+  },
+  "$defs": {
+    "ReconciliationResult": {
+      "type": "object",
+      "required": ["sku", "location", "status"],
+      "additionalProperties": false,
+      "properties": {
+        "sku": {
+          "type": "string",
+          "pattern": "^SKU-\\d{3}$",
+          "description": "Normalized SKU"
+        },
+        "location": {
+          "type": "string",
+          "description": "Warehouse identifier"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["unchanged", "quantity_changed", "added", "removed"]
+        },
+        "old_quantity": {
+          "type": ["integer", "null"],
+          "description": "Quantity in snapshot_1 (null if added)"
+        },
+        "new_quantity": {
+          "type": ["integer", "null"],
+          "description": "Quantity in snapshot_2 (null if removed)"
+        },
+        "quantity_delta": {
+          "type": ["integer", "null"],
+          "description": "new_quantity - old_quantity (null if added/removed)"
+        },
+        "old_name": {
+          "type": ["string", "null"],
+          "description": "Product name in snapshot_1"
+        },
+        "new_name": {
+          "type": ["string", "null"],
+          "description": "Product name in snapshot_2"
+        }
+      }
+    },
+    "DataQualityIssue": {
+      "type": "object",
+      "required": ["issue_type", "severity", "source_file", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "issue_type": {
+          "type": "string",
+          "enum": [
+            "duplicate_key",
+            "negative_quantity",
+            "column_name_mismatch",
+            "sku_format_normalized",
+            "whitespace_trimmed",
+            "date_format_inconsistent",
+            "name_drift",
+            "empty_file",
+            "missing_required_column"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["error", "warning", "info"]
+        },
+        "source_file": {
+          "type": "string",
+          "enum": ["snapshot_1", "snapshot_2", "both"]
+        },
+        "row_number": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "CSV row number (1-indexed, excluding header)"
+        },
+        "field": {
+          "type": ["string", "null"],
+          "description": "Affected column name"
+        },
+        "original_value": {
+          "type": ["string", "null"],
+          "description": "Value as it appeared in source"
+        },
+        "normalized_value": {
+          "type": ["string", "null"],
+          "description": "Value after normalization (if applicable)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable explanation"
+        }
+      }
+    }
+  }
+}
