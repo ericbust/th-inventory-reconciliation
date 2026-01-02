@@ -1,0 +1,4 @@
+# Production dependencies
+pandas==2.3.3
+pandera==0.27.1
+tqdm==4.67.1

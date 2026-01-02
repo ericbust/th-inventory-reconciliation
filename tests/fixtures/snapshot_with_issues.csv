@@ -1,0 +1,7 @@
+sku,product_name,qty,warehouse,updated_at
+SKU-001,Widget A,100,Warehouse A,2024-01-08
+SKU001, Widget B ,50,Warehouse A,2024-01-08
+sku-002,Gadget Pro,200,Warehouse B,01/08/2024
+SKU-003,Item X,-5,Warehouse C,2024-01-08
+SKU-003,Item X,150,Warehouse C,2024-01-08
+SKU-004,Gadget Lite,75.0,Warehouse A,2024-01-08

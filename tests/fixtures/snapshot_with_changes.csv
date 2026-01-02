@@ -1,0 +1,6 @@
+sku,name,quantity,location,last_counted
+SKU-001,Widget A,95,Warehouse A,2024-01-15
+SKU-002,Widget B,50,Warehouse A,2024-01-15
+SKU-003,Gadget Pro,180,Warehouse B,2024-01-15
+SKU-005,Connector Cable,480,Warehouse C,2024-01-15
+SKU-006,Power Supply,40,Warehouse A,2024-01-15
