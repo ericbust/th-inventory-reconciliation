@@ -28,3 +28,11 @@ I approached this with the mindset of knowing how data quality is paramount to t
 I ended up going with pandas for CSV processing, normalization, merging, and to take advantage of DataFrames to be used in tandem with panderas for data quality checks. The majority of the data quality checks that I initially thought of seemed to be ok, but I did end up prompting in a few more as I was validating my output like when the quantities had to be normalized which I wasn't reporting on before but is useful to identify data entry or parsing issues.
 
 I used GitHub's speckit which I've been using recently. It is overkill for a take home task but it follows how I tend to work with AI which is spending time up front planning, letting the AI implement, and reviewing its output and adjusting/iterating the output or tasks as needed.
+
+## Quality Issues Ground
+
+1. Column name differences
+2. Column type differences - quantities (int vs float), dates (iso vs other)
+3. Name drift for items
+4. SKU's not normalized (SKU005 vs SKU-005, casing)
+5. White space issues in string values (spaces and random quotes)
