@@ -61,18 +61,18 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T015 [P] [US1] Create test_reconciler.py in tests/unit/ with test cases for unchanged, changed, added, removed categorization
-- [ ] T016 [P] [US1] Create test_normalizer.py in tests/unit/ with SKU and name normalization test cases
-- [ ] T017 [P] [US1] Create integration test in tests/integration/test_full_reconciliation.py for basic reconciliation flow
+- [x] T015 [P] [US1] Create test_reconciler.py in tests/unit/ with test cases for unchanged, changed, added, removed categorization
+- [x] T016 [P] [US1] Create test_normalizer.py in tests/unit/ with SKU and name normalization test cases
+- [x] T017 [P] [US1] Create integration test in tests/integration/test_full_reconciliation.py for basic reconciliation flow
 
 ### Implementation for User Story 1
 
-- [ ] T018 [P] [US1] Create ReconciliationResult dataclass in src/models/reconciliation_result.py with status, quantities, delta
-- [ ] T019 [US1] Implement find_duplicates() in src/services/reconciler.py using pandas duplicated(keep=False)
-- [ ] T020 [US1] Implement reconcile() in src/services/reconciler.py with outer merge and status categorization
-- [ ] T021 [US1] Create basic CLI entry point in src/cli.py with argument parsing for snapshot paths
-- [ ] T022 [US1] Add tqdm progress bar to CLI in src/cli.py with 5 discrete steps
-- [ ] T023 [US1] Print console summary (counts per status) in src/cli.py
+- [x] T018 [P] [US1] Create ReconciliationResult dataclass in src/models/reconciliation_result.py with status, quantities, delta
+- [x] T019 [US1] Implement find_duplicates() in src/services/reconciler.py using pandas duplicated(keep=False)
+- [x] T020 [US1] Implement reconcile() in src/services/reconciler.py with outer merge and status categorization
+- [x] T021 [US1] Create basic CLI entry point in src/cli.py with argument parsing for snapshot paths
+- [x] T022 [US1] Add tqdm progress bar to CLI in src/cli.py with 5 discrete steps
+- [x] T023 [US1] Print console summary (counts per status) in src/cli.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - reconciliation works but no quality issues or JSON output
 
