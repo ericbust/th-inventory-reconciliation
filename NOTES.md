@@ -29,7 +29,7 @@ I ended up going with pandas for CSV processing, normalization, merging, and to 
 
 I used GitHub's speckit which I've been using recently. It is overkill for a take home task but it follows how I tend to work with AI which is spending time up front planning, letting the AI implement, and reviewing its output and adjusting/iterating the output or tasks as needed.
 
-## Quality Issues Ground
+## Quality Issues Found
 
 1. Column name differences
 2. Column type differences - quantities (int vs float), dates (iso vs other)
