@@ -54,7 +54,7 @@ Represents a detected data quality problem.
 |-------|------|-------------|-------------|
 | issue_type | str | Enum (see below) | Category of quality issue |
 | severity | str | Enum: error, warning, info | Impact level |
-| source_file | str | Required | Which snapshot file (1 or 2) |
+| source_file | str | Enum: snapshot_1, snapshot_2, both | Which snapshot file(s) |
 | row_number | int | None | CSV row number (1-indexed, excluding header) |
 | field | str | None | Affected column name |
 | original_value | str | None | Value as it appeared in source |
@@ -67,10 +67,12 @@ Represents a detected data quality problem.
 |------|----------|-------------|
 | `duplicate_key` | error | Same SKU+Warehouse appears multiple times |
 | `negative_quantity` | error | Quantity < 0 |
+| `quantity_coerced` | warning | Quantity was coerced from float to int |
 | `column_name_mismatch` | info | Column names differ from canonical names |
 | `sku_format_normalized` | warning | SKU required normalization (case, hyphen) |
 | `whitespace_trimmed` | warning | Leading/trailing whitespace removed |
 | `date_format_inconsistent` | warning | Date format differs from ISO standard |
+| `date_regression` | warning | Date in snapshot_2 is earlier than snapshot_1 |
 | `name_drift` | warning | Product name changed between snapshots for same SKU |
 | `empty_file` | error | Snapshot file contains no data rows |
 | `missing_required_column` | error | Required column not found (even after mapping) |

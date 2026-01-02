@@ -52,6 +52,8 @@ is logged (severity: info) and processing continues.
 | SKU format | Non-standard SKU format (missing hyphen, wrong case) |
 | Whitespace | Leading/trailing whitespace in text fields |
 | Date format | Date not in ISO 8601 format (YYYY-MM-DD) |
+| Date regression | Date in snapshot_2 is earlier than snapshot_1 for same item |
+| Quantity coerced | Quantity was coerced from float to int |
 | Name drift | Product name changed between snapshots for same SKU |
 
 ### Info (logged only)
