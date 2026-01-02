@@ -90,6 +90,93 @@ class TestCheckNegativeQuantities:
         assert len(issues) == 0
 
 
+class TestCheckQuantityFormat:
+    """Tests for check_quantity_format() function."""
+
+    def test_integer_quantities_returns_empty(self) -> None:
+        """Integer quantities should return empty list (no float rows detected)."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001", "SKU-002"],
+            "quantity": [100, 50],
+        })
+        # No rows had float format in original CSV
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={})
+        assert len(issues) == 0
+
+    def test_float_whole_number_returns_warning(self) -> None:
+        """Float quantities like 70.0 should return warning when detected in CSV."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001", "SKU-002"],
+            "quantity": [70.0, 50.0],  # pandas converts all to float
+        })
+        # Only row 0 had float format in original CSV (e.g., "70.0")
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={0: "70.0"})
+
+        assert len(issues) == 1
+        assert issues[0].issue_type == "quantity_coerced"
+        assert issues[0].severity == "warning"
+        assert issues[0].row_number == 1
+        assert issues[0].original_value == "70.0"
+        assert issues[0].normalized_value == "70"
+        assert "SKU-001" in issues[0].description
+
+    def test_preserves_original_string_format(self) -> None:
+        """Original string format like 77.00 should be preserved in report."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001"],
+            "quantity": [77.0],  # pandas converts 77.00 to 77.0
+        })
+        # Original CSV had "77.00" with two decimal places
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={0: "77.00"})
+
+        assert len(issues) == 1
+        assert issues[0].original_value == "77.00"  # Preserved!
+        assert issues[0].normalized_value == "77"
+        assert "77.00" in issues[0].description
+
+    def test_multiple_float_rows_returns_multiple_warnings(self) -> None:
+        """Multiple rows with float format should return multiple warnings."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001", "SKU-002", "SKU-003"],
+            "quantity": [70.0, 50.0, 30.0],
+        })
+        # Rows 0 and 2 had float format in original CSV
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={0: "70.0", 2: "30.00"})
+
+        assert len(issues) == 2
+        assert all(i.issue_type == "quantity_coerced" for i in issues)
+
+    def test_no_float_rows_returns_empty(self) -> None:
+        """No warnings when float_qty_rows is empty even if DataFrame has floats."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001"],
+            "quantity": [70.0],  # pandas may convert, but CSV had "70"
+        })
+        # Empty dict means no rows had decimal points in original CSV
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={})
+        assert len(issues) == 0
+
+    def test_missing_quantity_column_returns_empty(self) -> None:
+        """Missing quantity column should return empty list."""
+        from src.services.quality_checker import check_quantity_format
+
+        df = pd.DataFrame({
+            "sku": ["SKU-001"],
+        })
+        issues = check_quantity_format(df, "snapshot_1", float_qty_rows={0: "70.0"})
+        assert len(issues) == 0
+
+
 class TestCheckSkuFormat:
     """Tests for check_sku_format() function."""
 
@@ -153,6 +240,7 @@ class TestCheckWhitespace:
         from src.services.quality_checker import check_whitespace
 
         df = pd.DataFrame({
+            "sku": ["SKU-001", "SKU-002"],
             "name": [" Widget A", "Widget B"],
             "location": ["Warehouse A", "Warehouse B"],
         })
@@ -162,12 +250,14 @@ class TestCheckWhitespace:
         assert issues[0].issue_type == "whitespace_trimmed"
         assert issues[0].severity == "warning"
         assert issues[0].field == "name"
+        assert "SKU-001" in issues[0].description
 
     def test_trailing_whitespace_returns_warning(self) -> None:
         """Trailing whitespace should return warning."""
         from src.services.quality_checker import check_whitespace
 
         df = pd.DataFrame({
+            "sku": ["SKU-001", "SKU-002"],
             "name": ["Widget A ", "Widget B"],
             "location": ["Warehouse A", "Warehouse B"],
         })
@@ -175,6 +265,7 @@ class TestCheckWhitespace:
 
         assert len(issues) == 1
         assert issues[0].issue_type == "whitespace_trimmed"
+        assert "SKU-001" in issues[0].description
 
 
 class TestCheckDateFormat:

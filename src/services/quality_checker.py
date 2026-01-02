@@ -94,6 +94,67 @@ def check_negative_quantities(
     return issues
 
 
+def check_quantity_format(
+    df: pd.DataFrame,
+    source_file: str,
+    float_qty_rows: dict[int, str] | None = None,
+) -> list[DataQualityIssue]:
+    """Check for quantities that need coercion from float to int.
+
+    Detects float values like 70.0 that will be coerced to integers.
+    Only flags rows where the original CSV had a decimal point.
+
+    Args:
+        df: DataFrame to check (raw data before normalization).
+        source_file: Source file identifier.
+        float_qty_rows: Dict mapping row indices to original string values
+            for quantities that had float format in original CSV.
+
+    Returns:
+        List of DataQualityIssue for each quantity requiring coercion.
+    """
+    issues: list[DataQualityIssue] = []
+
+    if "quantity" not in df.columns:
+        return issues
+
+    if float_qty_rows is None:
+        float_qty_rows = {}
+
+    for idx, row in df.iterrows():
+        # Only check rows that had decimal points in the original CSV
+        if int(idx) not in float_qty_rows:
+            continue
+
+        original_str = float_qty_rows[int(idx)]
+
+        try:
+            float_qty = float(original_str)
+            # Check if it's a whole number (like 70.0 or 77.00)
+            if float_qty == int(float_qty):
+                row_num = int(idx) + 1
+                sku = str(row.get("sku", "unknown"))
+                coerced_qty = int(float_qty)
+
+                issues.append(
+                    DataQualityIssue(
+                        issue_type="quantity_coerced",
+                        severity="warning",
+                        source_file=source_file,  # type: ignore
+                        row_number=row_num,
+                        field="quantity",
+                        original_value=original_str,
+                        normalized_value=str(coerced_qty),
+                        description=f"Quantity coerced from {original_str} to {coerced_qty} for SKU {sku} at row {row_num}",
+                    )
+                )
+        except (ValueError, TypeError):
+            # Not a valid number, skip
+            pass
+
+    return issues
+
+
 def check_sku_format(
     df: pd.DataFrame,
     source_file: str,
@@ -164,6 +225,7 @@ def check_whitespace(
 
             if original != trimmed:
                 row_num = int(idx) + 1
+                sku = str(row.get("sku", "unknown"))
                 issues.append(
                     DataQualityIssue(
                         issue_type="whitespace_trimmed",
@@ -173,7 +235,7 @@ def check_whitespace(
                         field=field,
                         original_value=repr(original),
                         normalized_value=trimmed,
-                        description=f"Whitespace trimmed from {field} at row {row_num}",
+                        description=f"Whitespace trimmed from {field} for SKU {sku} at row {row_num}",
                     )
                 )
 
@@ -460,6 +522,8 @@ def run_all_checks(
     mapped_columns_2: list[str],
     missing_columns_1: Optional[list[str]] = None,
     missing_columns_2: Optional[list[str]] = None,
+    float_qty_rows_1: Optional[dict[int, str]] = None,
+    float_qty_rows_2: Optional[dict[int, str]] = None,
 ) -> list[DataQualityIssue]:
     """Run all quality checks on both snapshots.
 
@@ -470,6 +534,8 @@ def run_all_checks(
         mapped_columns_2: Columns mapped in snapshot 2.
         missing_columns_1: Missing columns in snapshot 1.
         missing_columns_2: Missing columns in snapshot 2.
+        float_qty_rows_1: Dict of row indices to original values for float quantities in snapshot 1.
+        float_qty_rows_2: Dict of row indices to original values for float quantities in snapshot 2.
 
     Returns:
         Combined list of all DataQualityIssues.
@@ -478,6 +544,10 @@ def run_all_checks(
         missing_columns_1 = []
     if missing_columns_2 is None:
         missing_columns_2 = []
+    if float_qty_rows_1 is None:
+        float_qty_rows_1 = {}
+    if float_qty_rows_2 is None:
+        float_qty_rows_2 = {}
 
     issues: list[DataQualityIssue] = []
 
@@ -494,12 +564,14 @@ def run_all_checks(
     issues.extend(check_column_names(mapped_columns_2, "snapshot_2"))
 
     # Per-snapshot checks
+    float_rows_map = {"snapshot_1": float_qty_rows_1, "snapshot_2": float_qty_rows_2}
     for df, source in [(df1, "snapshot_1"), (df2, "snapshot_2")]:
         if df.empty:
             continue
 
         issues.extend(check_duplicates(df, source))
         issues.extend(check_negative_quantities(df, source))
+        issues.extend(check_quantity_format(df, source, float_rows_map[source]))
         issues.extend(check_sku_format(df, source))
         issues.extend(check_whitespace(df, source))
         issues.extend(check_date_format(df, source))

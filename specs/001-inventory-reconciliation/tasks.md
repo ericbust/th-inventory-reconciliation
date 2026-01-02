@@ -27,8 +27,8 @@
 - [x] T002 Create pyproject.toml with Python 3.10+ and project metadata
 - [x] T003 Create requirements.txt with pandas==2.3.3, pandera==0.27.1, tqdm==4.67.1
 - [x] T004 [P] Create requirements-dev.txt with pytest==9.0.2, pytest-cov==7.0.0
-- [x] T005 [P] Create src/__init__.py, src/models/__init__.py, src/services/__init__.py, src/schemas/__init__.py
-- [x] T006 [P] Create tests/__init__.py, tests/conftest.py with shared fixtures
+- [x] T005 [P] Create src/**init**.py, src/models/**init**.py, src/services/**init**.py, src/schemas/**init**.py
+- [x] T006 [P] Create tests/**init**.py, tests/conftest.py with shared fixtures
 - [x] T007 [P] Create tests/fixtures/ directory with sample test data files
 
 ---
@@ -55,7 +55,7 @@
 
 **Goal**: Compare two inventory snapshots and categorize items as unchanged, changed, added, or removed
 
-**Independent Test**: Run `python -m src.cli` with sample data and verify items are correctly categorized by status
+**Independent Test**: Run `python -m src.reconcile` with sample data and verify items are correctly categorized by status
 
 ### Tests for User Story 1
 
@@ -70,9 +70,9 @@
 - [x] T018 [P] [US1] Create ReconciliationResult dataclass in src/models/reconciliation_result.py with status, quantities, delta
 - [x] T019 [US1] Implement find_duplicates() in src/services/reconciler.py using pandas duplicated(keep=False)
 - [x] T020 [US1] Implement reconcile() in src/services/reconciler.py with outer merge and status categorization
-- [x] T021 [US1] Create basic CLI entry point in src/cli.py with argument parsing for snapshot paths
-- [x] T022 [US1] Add tqdm progress bar to CLI in src/cli.py with 5 discrete steps
-- [x] T023 [US1] Print console summary (counts per status) in src/cli.py
+- [x] T021 [US1] Create basic CLI entry point in src/reconcile.py with argument parsing for snapshot paths
+- [x] T022 [US1] Add tqdm progress bar to CLI in src/reconcile.py with 5 discrete steps
+- [x] T023 [US1] Print console summary (counts per status) in src/reconcile.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - reconciliation works but no quality issues or JSON output
 
@@ -101,8 +101,8 @@
 - [x] T033 [US2] Implement check_column_names() in src/services/quality_checker.py for mapping detection
 - [x] T034 [US2] Implement check_name_drift() in src/services/quality_checker.py comparing names across snapshots
 - [x] T035 [US2] Implement run_all_checks() in src/services/quality_checker.py aggregating all quality checks
-- [x] T036 [US2] Integrate quality checking into CLI flow in src/cli.py
-- [x] T037 [US2] Update console summary to include quality issue counts by severity in src/cli.py
+- [x] T036 [US2] Integrate quality checking into CLI flow in src/reconcile.py
+- [x] T037 [US2] Update console summary to include quality issue counts by severity in src/reconcile.py
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - reconciliation with quality issues detected
 
@@ -126,8 +126,8 @@
 - [x] T042 [P] [US3] Create ReportMetadata and ReportSummary nested dataclasses in src/models/report.py
 - [x] T043 [US3] Implement build_report() in src/services/reporter.py assembling all components
 - [x] T044 [US3] Implement write_json() in src/services/reporter.py with sort_keys=True for determinism
-- [x] T045 [US3] Integrate JSON output into CLI flow in src/cli.py
-- [x] T046 [US3] Ensure output/ directory is created if missing in src/cli.py
+- [x] T045 [US3] Integrate JSON output into CLI flow in src/reconcile.py
+- [x] T046 [US3] Ensure output/ directory is created if missing in src/reconcile.py
 
 **Checkpoint**: All user stories should now be independently functional - complete reconciliation with quality issues and JSON output
 
@@ -137,12 +137,12 @@
 
 **Purpose**: Final validation, documentation, and cleanup
 
-- [ ] T047 [P] Create NOTES.md documenting key decisions, assumptions, and approach
-- [ ] T048 Run pytest --cov=src --cov-report=term-missing and verify 90% coverage target (SC-004)
-- [ ] T049 Validate JSON output against contracts/output-schema.json using jsonschema
-- [ ] T050 Run full reconciliation on sample data and verify <5 second completion (SC-001)
-- [ ] T051 Verify deterministic output by running twice and comparing (SC-005)
-- [ ] T052 [P] Run quickstart.md validation - follow all steps and verify they work
+- [x] T047 [P] Create NOTES_2.md documenting key decisions, assumptions, and approach
+- [x] T048 Run pytest --cov=src --cov-report=term-missing and verify 90% coverage target (SC-004)
+- [x] T049 Validate JSON output against contracts/output-schema.json using jsonschema
+- [x] T050 Run full reconciliation on sample data and verify <5 second completion (SC-001)
+- [x] T051 Verify deterministic output by running twice and comparing (SC-005)
+- [x] T052 [P] Run quickstart.md validation - follow all steps and verify they work
 
 ---
 
@@ -204,7 +204,7 @@ Task: T018 "Create ReconciliationResult dataclass in src/models/reconciliation_r
 1. Complete Phase 1: Setup (T001-T007)
 2. Complete Phase 2: Foundational (T008-T014)
 3. Complete Phase 3: User Story 1 (T015-T023)
-4. **STOP and VALIDATE**: Run `python -m src.cli` and verify basic reconciliation works
+4. **STOP and VALIDATE**: Run `python -m src.reconcile` and verify basic reconciliation works
 5. Output shows unchanged/changed/added/removed counts in console
 
 ### Incremental Delivery

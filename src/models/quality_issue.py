@@ -7,6 +7,7 @@ from typing import Literal, Optional
 IssueType = Literal[
     "duplicate_key",
     "negative_quantity",
+    "quantity_coerced",
     "column_name_mismatch",
     "sku_format_normalized",
     "whitespace_trimmed",
@@ -29,6 +30,7 @@ class DataQualityIssue:
     Issue Types and Severities:
     - duplicate_key (error): Same SKU+Warehouse appears multiple times
     - negative_quantity (error): Quantity < 0
+    - quantity_coerced (warning): Quantity was coerced from float to int
     - column_name_mismatch (info): Column names differ from canonical names
     - sku_format_normalized (warning): SKU required normalization
     - whitespace_trimmed (warning): Leading/trailing whitespace removed

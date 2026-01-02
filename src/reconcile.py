@@ -26,7 +26,7 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         description="Compare two inventory CSV snapshots and identify changes.",
-        prog="python -m src.cli",
+        prog="python -m src.reconcile",
     )
     parser.add_argument(
         "--snapshot1",
@@ -150,7 +150,7 @@ def main(args: list[str] | None = None) -> int:
     try:
         # Step 1: Load snapshot 1
         update_progress("Loading snapshot 1")
-        df1, mapped1, missing1 = load_snapshot(snapshot1_path)
+        df1, mapped1, missing1, float_qty_rows1 = load_snapshot(snapshot1_path)
         snapshot1_rows = len(df1)
 
         if missing1:
@@ -159,7 +159,7 @@ def main(args: list[str] | None = None) -> int:
 
         # Step 2: Load snapshot 2
         update_progress("Loading snapshot 2")
-        df2, mapped2, missing2 = load_snapshot(snapshot2_path)
+        df2, mapped2, missing2, float_qty_rows2 = load_snapshot(snapshot2_path)
         snapshot2_rows = len(df2)
 
         if missing2:
@@ -177,6 +177,7 @@ def main(args: list[str] | None = None) -> int:
             df1, df2,
             mapped1, mapped2,
             missing1, missing2,
+            float_qty_rows1, float_qty_rows2,
         )
 
         # Step 5: Detect and filter duplicates

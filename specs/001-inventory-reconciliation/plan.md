@@ -71,7 +71,7 @@ src/
 ├── schemas/
 │   ├── __init__.py
 │   └── inventory_schema.py    # Pandera schemas
-└── cli.py                     # Entry point with progress bar
+└── reconcile.py               # Entry point with progress bar
 
 tests/
 ├── __init__.py

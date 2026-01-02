@@ -197,10 +197,12 @@
           "enum": [
             "duplicate_key",
             "negative_quantity",
+            "quantity_coerced",
             "column_name_mismatch",
             "sku_format_normalized",
             "whitespace_trimmed",
             "date_format_inconsistent",
+            "date_regression",
             "name_drift",
             "empty_file",
             "missing_required_column"

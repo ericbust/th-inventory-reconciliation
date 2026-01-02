@@ -20,8 +20,8 @@ class TestBasicReconciliationFlow:
         from src.services.reconciler import reconcile
 
         # Load snapshots
-        df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
-        df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+        df1, mapped1, missing1, _ = load_snapshot(sample_snapshot_1)
+        df2, mapped2, missing2, _ = load_snapshot(sample_snapshot_2)
 
         assert len(missing1) == 0, f"Missing columns in snapshot_1: {missing1}"
         assert len(missing2) == 0, f"Missing columns in snapshot_2: {missing2}"
@@ -81,7 +81,7 @@ class TestBasicReconciliationFlow:
 
         # snapshot_with_issues.csv uses non-canonical column names
         snapshot_path = fixtures_dir / "snapshot_with_issues.csv"
-        df, mapped, missing = load_snapshot(snapshot_path)
+        df, mapped, missing, _ = load_snapshot(snapshot_path)
 
         # Should have mapped columns
         assert len(mapped) > 0, "Expected column mapping to occur"
@@ -161,14 +161,14 @@ class TestJsonOutputGeneration:
         from src.services.reporter import build_report, write_json
 
         # Load and normalize
-        df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
-        df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+        df1, mapped1, missing1, float_qty1 = load_snapshot(sample_snapshot_1)
+        df2, mapped2, missing2, float_qty2 = load_snapshot(sample_snapshot_2)
 
         df1_norm, _ = normalize_dataframe(df1)
         df2_norm, _ = normalize_dataframe(df2)
 
         # Quality checks
-        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2, float_qty1, float_qty2)
 
         # Filter duplicates
         key_cols = ["sku", "location"]
@@ -224,13 +224,13 @@ class TestJsonOutputGeneration:
         from src.services.reporter import build_report, write_json
 
         def run_reconciliation() -> str:
-            df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
-            df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+            df1, mapped1, missing1, float_qty1 = load_snapshot(sample_snapshot_1)
+            df2, mapped2, missing2, float_qty2 = load_snapshot(sample_snapshot_2)
 
             df1_norm, _ = normalize_dataframe(df1)
             df2_norm, _ = normalize_dataframe(df2)
 
-            quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+            quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2, float_qty1, float_qty2)
 
             key_cols = ["sku", "location"]
             dupe_mask1 = df1_norm.duplicated(subset=key_cols, keep=False)
@@ -286,13 +286,13 @@ class TestJsonOutputGeneration:
             schema = json.load(f)
 
         # Run reconciliation
-        df1, mapped1, missing1 = load_snapshot(sample_snapshot_1)
-        df2, mapped2, missing2 = load_snapshot(sample_snapshot_2)
+        df1, mapped1, missing1, float_qty1 = load_snapshot(sample_snapshot_1)
+        df2, mapped2, missing2, float_qty2 = load_snapshot(sample_snapshot_2)
 
         df1_norm, _ = normalize_dataframe(df1)
         df2_norm, _ = normalize_dataframe(df2)
 
-        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2)
+        quality_issues = run_all_checks(df1, df2, mapped1, mapped2, missing1, missing2, float_qty1, float_qty2)
 
         key_cols = ["sku", "location"]
         dupe_mask1 = df1_norm.duplicated(subset=key_cols, keep=False)
@@ -341,7 +341,7 @@ class TestJsonOutputGeneration:
         self, sample_snapshot_1: Path, sample_snapshot_2: Path
     ) -> None:
         """Test that CLI generates output file in output/ directory."""
-        from src.cli import main
+        from src.reconcile import main
 
         with tempfile.TemporaryDirectory() as tmpdir:
             output_dir = Path(tmpdir) / "output"

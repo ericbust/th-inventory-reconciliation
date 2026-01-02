@@ -26,10 +26,10 @@ pip install -r requirements-dev.txt
 
 ```bash
 # Run reconciliation on sample data
-python -m src.cli
+python -m src.reconcile
 
 # Or specify custom paths
-python -m src.cli --snapshot1 data/snapshot_1.csv --snapshot2 data/snapshot_2.csv
+python -m src.reconcile --snapshot1 data/snapshot_1.csv --snapshot2 data/snapshot_2.csv
 ```
 
 ## Expected Output
@@ -80,7 +80,7 @@ pytest -k "test_duplicate"
 ```
 inventory-reconciliations/
 ├── src/                    # Source code
-│   ├── cli.py              # Entry point
+│   ├── reconcile.py        # Entry point
 │   ├── models/             # Data classes
 │   ├── services/           # Business logic
 │   └── schemas/            # Pandera schemas
