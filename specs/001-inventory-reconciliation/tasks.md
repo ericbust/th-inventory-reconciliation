@@ -39,13 +39,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create InventoryItem dataclass in src/models/inventory_item.py with sku, name, quantity, location, last_counted fields
-- [ ] T009 Create pandera schema in src/schemas/inventory_schema.py with column validators and coercion rules
-- [ ] T010 [P] Create column mapping constants in src/services/loader.py (COLUMN_MAPPING dict)
-- [ ] T011 Implement load_snapshot() in src/services/loader.py using pandas read_csv with column mapping
-- [ ] T012 [P] Implement normalize_sku() in src/services/normalizer.py (uppercase, hyphen insertion)
-- [ ] T013 [P] Implement normalize_name() in src/services/normalizer.py (whitespace trimming)
-- [ ] T014 Implement normalize_dataframe() in src/services/normalizer.py combining SKU and name normalization
+- [x] T008 Create InventoryItem dataclass in src/models/inventory_item.py with sku, name, quantity, location, last_counted fields
+- [x] T009 Create pandera schema in src/schemas/inventory_schema.py with column validators and coercion rules
+- [x] T010 [P] Create column mapping constants in src/services/loader.py (COLUMN_MAPPING dict)
+- [x] T011 Implement load_snapshot() in src/services/loader.py using pandas read_csv with column mapping
+- [x] T012 [P] Implement normalize_sku() in src/services/normalizer.py (uppercase, hyphen insertion)
+- [x] T013 [P] Implement normalize_name() in src/services/normalizer.py (whitespace trimming)
+- [x] T014 Implement normalize_dataframe() in src/services/normalizer.py combining SKU and name normalization
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
